@@ -4,13 +4,13 @@ with open('README.rst') as file:
     long_description = file.read()
 
 setup(
-    name='simple_spearmint_v2',
+    name='simple_spearmint',
     version='1.0.0',
     description='Thin and improved wrapper class around spearmint',
     author='Federico Parroni',
     author_email='federicoparroni.95@gmail.com',
     url='https://github.com/keyblade95/simple_spearmint',
-    packages=['simple_spearmint_v2'],
+    packages=['simple_spearmint'],
     long_description=long_description,
     classifiers=[
         "License :: OSI Approved :: MIT License",
