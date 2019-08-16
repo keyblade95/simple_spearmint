@@ -52,9 +52,8 @@ class SimpleSpearmint(object):
     def __init__(self, parameter_space, noiseless=False, debug=False, 
                  minimize=True):
         # Add the 'size' key to each entry in the parameter space.
-        # We assume all parameters are size 1, which is reasonable.
         for name, spec in parameter_space.items():
-            spec['size'] = 1
+            spec['size'] = spec.get('size', 1)
             parameter_space[name] = spec
         # Convert the "noiseless" bool flag to Spearmint's string semantics
         noiseless = 'NOISELESS' if noiseless else 'GAUSSIAN'
@@ -164,18 +163,8 @@ class SimpleSpearmint(object):
             sys.stderr = old_stderr
         # Convert the vector format returned by chooser.suggest() to a dict
         suggestion = self.task_group.paramify(np.atleast_1d(suggestion))
-        # Retrieve the values, and also flatten the 1d arrays that spearmint
-        # forces you to use
-        suggestion = dict((name, value['values'][0])
-                          for name, value in suggestion.items())
-        # Force-cast parameters to their correct types
-        for name, value in suggestion.items():
-            if self.parameter_space[name]['type'] == 'int':
-                suggestion[name] = int(value)
-            if self.parameter_space[name]['type'] == 'float':
-                suggestion[name] = float(value)
-            # Ignore enums, we don't know what their type is
-        return suggestion
+
+        return { name: value['values'] for name, value in suggestion.items() }
 
     def suggest_random(self):
         """ Randomly generate a parameter suggestion.
@@ -190,12 +179,12 @@ class SimpleSpearmint(object):
         for name, spec in self.parameter_space.items():
             # Sample floats from np.random.uniform
             if spec['type'] == 'float':
-                suggestion[name] = float(np.random.uniform(
-                    low=spec['min'], high=spec['max']))
+                suggestion[name] = np.random.uniform(
+                    low=spec['min'], high=spec['max'], size=spec['size'])
             # Sample ints from np.random.random_integers
             elif spec['type'] == 'int':
-                suggestion[name] = int(np.random.random_integers(
-                    low=spec['min'], high=spec['max']))
+                suggestion[name] = np.random.random_integers(
+                    low=spec['min'], high=spec['max'], size=spec['size'])
             # In enum, sample from options using choice
             elif spec['type'] == 'enum':
                 suggestion_index = np.random.choice(len(spec['options']))
